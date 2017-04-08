@@ -1,0 +1,47 @@
+UPDATING ADMIN ROUTE CODE IS:-
+
+router
+
+    .post('/get-social-infos', function (req, res, next) {
+
+        var res_social = [];
+        db.admin_infos.find({
+           
+        },
+
+        {social_info:1}
+            ,
+            function (err, social) {
+                if (err || !social) console.log(err);
+                else {
+                    console.log(social);
+                    res_social = social;
+                    res.status(200).send(res_social);
+                }
+
+            }
+
+        );
+
+
+UPDATING DATA CONTROL CODE IS:-
+
+   $scope.getSocialInfos = function () {
+
+        $scope.u = {};
+        $scope.u.admin_id = $cookieStore.get('admin_id');
+
+        $http({
+            method: "POST",
+            url: "admin/get-social-infos",
+            data: $scope.u
+        }).then(function mySucces(response) {
+
+            $scope.choices = response.data[0].social_info;
+
+            console.log(response.data[0].social_info);
+        }, function myError(response) {
+
+        });
+
+    }
