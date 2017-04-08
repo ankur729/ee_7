@@ -1,0 +1,507 @@
+//FOR BANNER OPERATIONS
+
+router
+    .post('/add-banner-details', function (req, res, next) {
+
+        console.log(req.body.img.length);
+        var id = mongojs.ObjectId();
+            db.banner_infos.save(
+                {
+                    '_id': id, 'banner_name': req.body.banner_name, 'banner_status': req.body.banner_status
+                }
+                , function (err, banner) {
+
+                    if (err) throw err;
+
+
+                   
+                    console.log('banner DETAILS saved');
+
+                    for (var i = 0; i < req.body.choices.length; i++) {
+
+                        var banner = randomstring.generate(13);
+
+                        var banner_file = '/uploads/global_setting_uploads/' + banner + '.jpg';
+
+                        fs.writeFile("client/uploads/global_setting_uploads/" + banner + ".jpg", new Buffer(req.body.img[i], "base64"), function (err) {
+
+                            if (err) {
+
+                                throw err;
+                                console.log(err);
+                                res.send(err)
+                            } else {
+                                console.log('Banner Img uploaded');
+
+                            }
+
+                        });
+                      
+                            //  db.banner_infos.update(
+                            // { '_id': mongojs.ObjectId(id) },
+                            // { $push: { "banner_details": { _id:mongojs.ObjectId(),'banner_title': req.body.choices[i].banner_title, 'banner_link': req.body.choices[i].banner_link, 'banner_img': banner_file, 'banner_order': req.body.choices[i].banner_order } } }
+
+                                db.banner_infos.findAndModify({
+              query:{_id: mongojs.ObjectId(id)},
+    update:{$push: {banner_details: {
+                '_id':mongojs.ObjectId(),
+                'banner_title':req.body.choices[i].banner_title,
+                'banner_link':req.body.choices[i].banner_link,
+                'banner_order':req.body.choices[i].banner_order,
+                'banner_img':banner_file
+                
+            }}},
+    new: true
+
+
+                                  }  , function (err, data, lastErrorObject) {
+                                if (err) {
+
+                                    res.send('error');
+                                    throw err;
+                                    console.log(err);
+                                }
+
+
+                            });
+
+                    }
+
+ 
+ res.send(banner);
+                                    
+                });
+
+
+      
+
+    });
+
+router
+    .get('/fetch-all-banner-details', function (req, res, next) {
+
+        db.banner_infos.find({
+
+        },
+        {banner_name:1,banner_status:1}
+        , function (err, banner) {
+                if (err || !banner) console.log("No  banner found");
+                else {
+                    console.log(banner[0]);
+                    res.status(200).send(banner);
+                }
+            });
+    });
+
+router
+
+    .post('/delete-selected-banner', function (req, res, next) {
+
+        console.log(req.body);
+
+        for (var i = 0; i < req.body.selected_banner.length; i++) {
+
+               db.banner_infos.remove({
+               
+                    '_id': mongojs.ObjectId(req.body.selected_banner[i])
+              
+            }, function (err, data, lastErrorObject) {
+                if (err) {
+                    res.status(400);
+                    res.send('error');
+                    throw err;
+
+                }
+                res.send('deleted')
+                console.log('deleted');
+
+
+            });
+
+        }
+    });
+
+router
+
+    .post('/delete-all-banners', function (req, res, next) {
+
+
+        console.log(req.body);
+        db.admin_infos.findAndModify({
+            query: {
+                _id: mongojs.ObjectId(req.body.admin_id)
+            },
+
+            update: {
+                $pull: {
+                    'banner_info': {
+
+                    }
+                }
+
+
+            }
+
+
+        }, function (err, data, lastErrorObject) {
+            if (err) {
+                res.status(400);
+                res.send('error');
+                throw err;
+
+            }
+            console.log('deleted');
+            res.status(200).send(data);
+
+        });
+    });
+
+router
+
+    .post('/delete-all-coupon', function (req, res, next) {
+
+        console.log('delteing ALL');
+        console.log(req.body);
+        db.admin_infos.findAndModify({
+            query: {
+                _id: mongojs.ObjectId(req.body.admin_id)
+            },
+            update: {
+                $pull: {
+                    'coupon_infos': {
+
+                    }
+                }
+
+
+            }
+
+
+        }, function (err, data, lastErrorObject) {
+            if (err) {
+                res.status(400);
+                res.send('error');
+                throw err;
+
+            }
+            console.log('deleted');
+            res.status(200).send(data);
+
+        });
+    });
+
+router
+
+    .post('/enable-banner-by-id', function (req, res, next) {
+
+     
+        for (var i = 0; i < req.body.length; i++) {
+
+            db.banner_infos.update({
+                "_id": mongojs.ObjectId(req.body[i])
+            },
+
+                {
+                    "$set": {
+                        "banner_status": 'Enable'
+
+                    }
+
+                }
+
+                ,
+                function (err, coupon) {
+                    if (err || !coupon) console.log("No  banner found");
+                    else {
+                        console.log(coupon);
+
+                    }
+
+                }
+
+            );
+
+
+        }
+        res.status(200).send({
+            'status': 'updated'
+        });
+
+    });
+
+router
+
+    .post('/disable-banner-by-id', function (req, res, next) {
+
+        console.log(req.body);
+        for (var i = 0; i < req.body.length; i++) {
+
+            db.banner_infos.update({
+                "_id": mongojs.ObjectId(req.body[i])
+            },
+
+                {
+                    "$set": {
+                        "banner_status": 'Disable'
+
+                    }
+
+                }
+
+                ,
+                function (err, banner) {
+                    if (err || !banner) throw err;
+                    else {
+                        console.log(banner);
+
+                    }
+
+                }
+
+            );
+
+
+        }
+        res.status(200).send({
+            'status': 'updated'
+        });
+
+    });
+
+router
+
+    .post('/enable-all-banner', function (req, res, next) {
+
+                db.banner_infos.update({
+                         
+                        },
+
+                            {
+                                "$set": {
+                                    "banner_status": 'Enable'
+
+                                }
+
+                            },
+                            {multi: true}
+                            ,
+                            function (err, banner) {
+                                if (err || !banner) console.log("No  banner found");
+                                else {
+                                    console.log(banner);
+
+                                }
+                                res.send('success');
+                            }
+
+
+
+                        );
+
+
+
+
+    });
+
+router
+
+    .post('/disable-all-banner', function (req, res, next) {
+        console.log('DISABLING ALL BANNER');
+        db.banner_infos.update({
+                         
+                        },
+
+                            {
+                                "$set": {
+                                    "banner_status": 'Disable'
+
+                                }
+
+                            },
+                            {multi: true}
+                            ,
+                            function (err, banner) {
+                                if (err || !banner) console.log("No  banner found");
+                                else {
+                                    console.log(banner);
+
+                                }
+                                res.send('success');
+                            }
+
+
+
+                        );
+
+
+    });
+
+router
+
+    .post('/fetch-banner-by-id', function (req, res, next) {
+
+        //console.log(req.body.info_page_id);
+        db.banner_infos .findOne({
+            "_id": mongojs.ObjectId(req.body.banner_id)
+        }
+            , function (err, banner) {
+                if (err || !banner) console.log("No  banner found");
+                else {
+                    console.log(banner);
+                    res.status(200).send(banner);
+                }
+
+            }
+
+        );
+
+    });
+
+router
+    .post('/update-banner-img-by-id', function (req, res, next) {
+
+        console.log(req.body);
+   
+          var banner = randomstring.generate(13);
+
+                        var banner_file = '/uploads/global_setting_uploads/' + banner + '.jpg';
+
+                        fs.writeFile("client/uploads/global_setting_uploads/" + banner + ".jpg", new Buffer(req.body.banner_img, "base64"), function (err) {
+
+                            if (err) {
+
+                                throw err;
+                                console.log(err);
+                                res.send(err)
+                            } else {
+                                console.log('Banner Img uploaded');
+
+                            }
+
+                        });
+
+
+
+         db.banner_infos.update({
+                 'banner_details._id':mongojs.ObjectId(req.body.banner_id)
+            },{
+              $set:{'banner_details.$.banner_img':banner_file}
+         }
+    , function (err, data, lastErrorObject) {
+
+                if (err) {
+
+                    res.send('error');
+                    throw err;
+                    console.log(err);
+
+                }
+                console.log(data);
+                res.send('updated')
+         });
+
+    });
+
+
+router
+    .post('/update-banner-details', function (req, res, next) {
+        
+        console.log('THIS IS BANNER');
+        console.log(req.body);
+
+   db.banner_infos.update({
+            "_id": mongojs.ObjectId(req.body._id)
+        },
+
+            {
+                "$set": {
+                    "banner_name":  req.body.banner_name,
+                    "banner_status": req.body.banner_status
+        
+                }
+
+            }
+
+    , function (err, data, lastErrorObject) {
+
+                if (err) {
+
+                    res.send('error');
+                    throw err;
+                    console.log(err);
+
+                }
+                console.log(data);
+                
+                    db.banner_infos.find(
+                        {},
+                        function (err, data) {
+
+
+                            if (err) {
+                                res.status(404);
+                                res.send('layout not found');
+                            } else {
+
+                                console.log(data);
+
+                                    for(var i=0;i<data.length;i++){
+
+                                        if(data[i]._id==req.body._id){
+
+                                for(var j=0;j<data[i].banner_details.length;j++){
+
+
+                                            db.banner_infos.update({
+                                                    "banner_details._id": mongojs.ObjectId(data[i].banner_details[j]._id)
+                                                },
+
+                                                    {
+                                                        "$set": {
+                                                            "banner_details.$.banner_title":  req.body.banner_details[j].banner_title,
+                                                              "banner_details.$.banner_link":  req.body.banner_details[j].banner_link,
+                                                              "banner_details.$.banner_order":  req.body.banner_details[j].banner_order,
+                                                
+                                                        }
+
+                                                    }
+                                                    , function (err, data, lastErrorObject) {
+
+                                                        if (err) {
+
+                                                            res.send('error');
+                                                            throw err;
+                                                            console.log(err);
+
+                                                        }
+
+                                                        
+                                                    }
+
+                                                );
+
+                                            }
+
+
+
+
+                                        }
+
+
+                            
+
+                                        }
+
+                                        res.send('data');
+
+
+                            }
+                        });
+
+
+
+                });
+
+    });
+
+// LAYOUT OPERATIONS//
