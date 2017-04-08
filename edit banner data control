@@ -1,0 +1,553 @@
+      /********** BANNER add/edit/delete/update IN ADMIN ****/
+  
+  $scope.banner_details = {};
+    $scope.banner_image_list = [];
+    $scope.banner_lst = {};
+    var ts = [];   //for multiple image upload
+    $scope.ts_img_data = [];
+
+
+    $scope.save_banner_info = function (banner) {
+
+        //   ts.splice(1);
+        var key = ts.length;
+        var len = 0;
+
+        for (var i = 0; i < ts.length; i++) {
+
+            if (ts[i] == undefined) return;
+
+            var f = ts[i];
+            r = new FileReader();
+
+            r.onloadend = function (e) {
+
+                var data = e.target.result;
+                $scope.cc = $base64.encode(data);
+
+                $scope.ts_img_data.push($scope.cc);
+
+
+                len++;
+
+
+
+            }
+
+            r.readAsBinaryString(f);
+
+
+
+        }
+        Notification.warning({ message: 'Please Wait For a While...', delay: 3000 });
+        $timeout(function () {
+
+            console.log(key);
+            if (key == len) {
+                $scope.u = {};
+                $scope.u.banner_name = $scope.banner_details.banner_name;
+
+                $scope.u.banner_status = $scope.banner_details.banner_status;
+                $scope.u.choices = $scope.choices;
+                $scope.u.img = $scope.ts_img_data;
+                $scope.u.admin_id = $cookieStore.get('admin_id');
+
+                //console.log($scope.u);
+                console.log($scope.u);
+                $http({
+                    method: "POST",
+                    url: "admin/add-banner-details",
+                    data: $scope.u
+                }).then(function mySucces(response) {
+
+                    $scope.ts_img_data=[];
+                     $scope.u="";
+                    $scope.banner_details = "";
+                    $scope.choices = [{ id: 'choice1' }];
+                    console.log(response);
+                    Notification.info({ message: 'Banner Successfully Added', delay: 4000 });
+                    $location.path('/admin/view-banners');
+                }, function myError(response) {
+                    console.log('err');
+                });
+            }
+
+
+        }, 3000);
+
+        // if($scope.key>0){
+
+        //console.log($scope.ts_img_data);   
+        // $scope.banner_details.details = banner;
+
+
+
+    }
+
+    $scope.imageData_banner = "";
+
+    $scope.upload_banner_image = function (files) {
+
+
+        if (files[0] == undefined) return;
+        $scope.fileExt = files[0].name.split(".").pop();
+
+        var f = document.getElementById('file').files[0];
+        ts.push(files[0]);
+        console.log(ts);
+        r = new FileReader();
+
+        r.onloadend = function (e) {
+
+            var data = e.target.result;
+
+            //send your binary data via $http or $resource or do anything else with it
+
+
+        }
+
+        r.readAsBinaryString(f);
+    }
+     $scope.imageData_banner = "";
+
+    $scope.upload_banner_image_update = function (files,id) {
+
+
+        if (files[0] == undefined) return;
+        $scope.fileExt = files[0].name.split(".").pop();
+
+        var f = document.getElementById(id).files[0];
+        ts.push(files[0]);
+        console.log(ts);
+        r = new FileReader();
+
+        r.onloadend = function (e) {
+
+            var data = e.target.result;
+
+            //send your binary data via $http or $resource or do anything else with it
+
+
+        }
+
+        r.readAsBinaryString(f);
+    }
+   $scope.edit_banner_image_api = function (files,id,index) {
+
+
+       if (files[0] == undefined) return;
+        $scope.fileExt = files[0].name.split(".").pop();
+
+        var f = document.getElementById(id).files[0];
+        // ts.push(files[0]);
+        // console.log(ts);
+        r = new FileReader();
+
+        r.onloadend = function (e) {
+            $scope.u={};
+            var data = e.target.result;
+            $scope.u.banner_img = $base64.encode(data);
+            $scope.u.banner_id=id;
+            // $scope.u={};
+            // $scope.banner_id=id;
+            // $scope.new_banner_img=data;
+
+
+            console.log($scope.u);
+    $http({
+            method: "POST",
+            url: "admin/update-banner-img-by-id",
+            data:$scope.u
+        }).then(function mySucces(response) {
+
+           $scope.update_banner_fetch();
+
+        }, function myError(response) {
+            console.log('err');
+        });
+    //         //send your binary data via $http or $resource or do anything else with it
+
+
+         }
+
+        r.readAsBinaryString(f);
+    }
+    $scope.fetch_banner_details = {};
+    $scope.fetch_all_banner_detail = function (details) {
+
+        $http({
+            method: "GET",
+            url: "admin/fetch-all-banner-details",
+
+        }).then(function mySucces(response) {
+
+            console.log(response);
+            $scope.fetch_banner_details = response.data;
+
+        }, function myError(response) {
+            console.log('err');
+        });
+
+    }
+
+    var count_all_banners = false;
+    $scope.checkAll_for_banners = function () {
+
+        if ($scope.hasAllCookChecked) {
+
+            $scope.hasAllCookChecked = true;
+            count_all_banners = true;
+        } else {
+            $scope.selection = [];
+            $scope.hasAllCookChecked = false;
+            count_all_banners = false;
+        }
+        angular.forEach($scope.fetch_banner_details, function (item) {
+            item.selected = $scope.hasAllCookChecked;
+        });
+
+    };
+
+    $scope.banner_delete = function () {
+
+
+        swal({
+            title: "Are you sure?",
+            text: "You are going to delete Banner Details.!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "No, cancel plz!",
+            closeOnConfirm: false,
+            closeOnCancel: false
+        },
+            function (isConfirm) {
+                if (isConfirm) {
+
+
+                    if ($scope.selection.length < 1 && count_all_banners == false) {
+                        sweetAlert("Oops...", "No Checkbox Selected!", "error");
+                    }
+                    else {
+
+
+
+                        if ($scope.selection.length < 1 && $scope.hasAllCookChecked == true) {
+
+                            $scope.u = {};
+                            $scope.u.admin_id = $cookieStore.get('admin_id');
+                            $http({
+                                method: "POST",
+                                url: "admin/delete-all-banners",
+                                data: $scope.u
+                            }).then(function mySucces(response) {
+
+                                // $scope.hasAllCookChecked=false;
+                                // $scope.hasAllCookChecked.selected=false;
+                                swal("Deleted!", "All  Banners Are Deleted!", "success");
+                                $timeout(function () {
+                                    $scope.fetch_all_banner_detail();
+
+                                }, 400);
+
+                            }, function myError(response) {
+                                console.log('err');
+                            });
+                        }
+                        if ($scope.selection.length > 0 && count_all_banners == false || $scope.hasAllCookChecked == false) {
+
+                            $scope.u = {};
+                            $scope.u.selected_banner = $scope.selection;
+                            $scope.u.admin_id = $cookieStore.get('admin_id');
+                            console.log($scope.u);
+                            $http({
+                                method: "POST",
+                                url: "admin/delete-selected-banner",
+                                data: $scope.u
+                            }).then(function mySucces(response) {
+
+                                swal("Deleted!", "Banner Successfully Deleted..!", "success");
+                                $scope.selection = [];
+                                $timeout(function () {
+                                    $scope.fetch_all_banner_detail();
+
+                                }, 400);
+
+                                // Notification.error({message: 'Info Page Successfully Deleted..', delay: 3000});
+                            }, function myError(response) {
+                                console.log('err');
+                            });
+                        }
+                        if ($scope.selection.length > 0 && count_all_banners == true && $scope.hasAllCookChecked == true) {
+                            $scope.u = {};
+                            $scope.u.admin_id = $cookieStore.get('admin_id');
+                            $http({
+                                method: "POST",
+                                url: "admin/delete-all-banners",
+                                data: $scope.u
+                            }).then(function mySucces(response) {
+
+                                // $scope.hasAllCookChecked=false;
+                                // $scope.hasAllCookChecked.selected=false;
+                                swal("Deleted!", "All  Banners Are Deleted!", "success");
+                                $timeout(function () {
+                                    $scope.fetch_all_banner_detail();
+
+                                }, 400);
+
+                            }, function myError(response) {
+                                console.log('err');
+                            });
+                        }
+
+                    }
+
+
+
+
+                } else {
+                    swal("Cancelled", "Your cancelled to delete cook :)", "error");
+                }
+            });
+
+        // console.log($scope.selection);
+
+
+
+    };
+
+    $scope.selectedItemChanged_Banner = function (val) {
+
+        swal({
+            title: "Are you sure?",
+            text: "You are going to Change Status of Banners!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, Change it!",
+            cancelButtonText: "No, cancel plz!",
+            closeOnConfirm: false,
+            closeOnCancel: false
+        },
+            function (isConfirm) {
+                if (isConfirm) {
+                    if ($scope.selection.length < 1 && count_all_banners == false) {
+                        sweetAlert("Oops...", "No Checkbox Selected!", "error");
+                    }
+                    else {
+
+                        if ($scope.hasAllCookChecked == undefined || $scope.hasAllCookChecked == false && $scope.selection.length > 0) {
+
+                            if (val == "Enable") {
+
+
+                                console.log($scope.selection);
+                                $http({
+                                    method: "POST",
+                                    url: "admin/enable-banner-by-id",
+                                    data: $scope.selection
+                                }).then(function mySucces(response) {
+
+                                    $scope.selection = [];
+                                    $timeout(function () {
+
+                                        $scope.fetch_all_banner_detail();
+
+                                    }, 400);
+                                    swal("Enabled!", "Banners Status Successfully Changed..!", "success");
+                                }, function myError(response) {
+                                    console.log('err');
+                                });
+                            }
+
+                            else if (val == "Disable") {
+                                console.log('Selected Disabling');
+                                console.log($scope.selection);
+                                $http({
+                                    method: "POST",
+                                    url: "admin/disable-banner-by-id",
+                                    data: $scope.selection
+                                }).then(function mySucces(response) {
+                                    $scope.selection = [];
+
+                                    $timeout(function () {
+
+                                        $scope.fetch_all_banner_detail();
+
+                                    }, 400);
+                                    swal("Disabled!", "Banners Status Successfully Changed..!", "success");
+                                }, function myError(response) {
+                                    console.log('err');
+                                });
+
+                            }
+
+                        }
+                        else
+                            if ($scope.hasAllCookChecked == undefined || $scope.hasAllCookChecked == true) {
+
+                                $scope.u = {};
+                                $scope.u.admin_id = $cookieStore.get('admin_id');
+
+                                if (val == "Enable") {
+
+
+                                    console.log($scope.selection);
+                                    $http({
+                                        method: "POST",
+                                        url: "admin/enable-all-banner",
+                                        data: $scope.u
+                                    }).then(function mySucces(response) {
+                                        $scope.hasAllCookChecked = false;
+                                        $scope.selection = [];
+                                        $timeout(function () {
+
+                                            $scope.fetch_all_banner_detail();
+
+                                        }, 400);
+
+
+                                        swal("Enabled All!", "Banners Status Successfully Changed..!", "success");
+                                    }, function myError(response) {
+                                        console.log('err');
+                                    });
+                                }
+
+                                else if (val == "Disable") {
+
+
+                                    console.log($scope.selection);
+                                    $http({
+                                        method: "POST",
+                                        url: "admin/disable-all-banner",
+                                        data: $scope.u
+                                    }).then(function mySucces(response) {
+                                        $scope.selection = [];
+                                        $scope.hasAllCookChecked = false;
+                                        $timeout(function () {
+
+                                            $scope.fetch_all_banner_detail();
+
+                                        }, 400);
+                                        swal("Disabled All!", "Banners Status Successfully Changed..!", "success");
+                                    }, function myError(response) {
+                                        console.log('err');
+                                    });
+
+                                }
+
+                            }
+
+
+
+
+
+                    }
+                }
+                else {
+                    swal("Cancelled", "Your cancelled to Change Coupons Status :)", "error");
+                }
+
+
+            });
+
+
+    }
+
+    $scope.tmp_banner_id = ""
+    $scope.update_banner_temp = function (banner_id) {
+
+        console.log(banner_id);
+
+        $scope.tmp_banner_id = banner_id;
+        $cookieStore.put('banner_id', $scope.tmp_banner_id);
+
+    }
+
+    $scope.update_banner_model = {};
+    $scope.update_banner_model_for_details = {};
+    $scope.update_banner_fetch = function () {
+
+        $scope.u = {};
+        $scope.u.banner_id = $cookieStore.get('banner_id');
+
+        $http({
+            method: "POST",
+            url: "admin/fetch-banner-by-id",
+            data: $scope.u
+        }).then(function mySucces(response) {
+
+              console.log(response);
+            $scope.update_banner_model = response.data;
+            $scope.update_banner_model_for_details = response.data.banner_details;
+            console.log($scope.update_banner_model_for_details);
+            // console.log($scope.update_page_info_model);
+        }, function myError(response) {
+            console.log('err');
+        });
+    }
+    $scope.update_banner = function () {
+
+
+        $scope.u = {};
+        $scope.u.banner_info = $scope.update_banner_model;
+        $scope.u.banner_details = $scope.update_banner_model_for_details;
+        console.log($scope.u.banner_info);
+        Notification.info({ message: 'Banner Successfully Updated.', delay: 3000 });
+        $http({
+            method: "POST",
+            url: "admin/update-banner-details",
+            data: $scope.u.banner_info
+        }).then(function mySucces(response) {
+
+            // console.log(response);
+            // $scope.update_info_pages_fetch();
+            // Notification.info({ message: 'Info Page Successfully Updated.', delay: 3000 });
+            //     $scope.update_page_info_model=response.data.info_pages[0];
+            //    console.log( $scope.update_page_info_model);
+        }, function myError(response) {
+            console.log('err');
+        });
+    }
+
+
+
+        $scope.onSelectBannerChange = function (val) {
+
+   
+                
+                if(val=="home_page_banner"){
+
+                   var src = $("#l_image").attr('src').replace($("#l_image").attr('src'), "uploads/banner/1.jpg");
+                    $("#l_image").attr('src', src);
+
+                     var src2 = $("#l_image_pop_up").attr('src').replace($("#l_image_pop_up").attr('src'), "uploads/banner/1.jpg");
+                    $("#l_image_pop_up").attr('src', src2);
+                }
+                else if(val=="listing_banner_2"){
+
+                   var src = $("#l_image").attr('src').replace($("#l_image").attr('src'), "uploads/banner/2.jpg");
+                    $("#l_image").attr('src', src);
+                      var src2 = $("#l_image_pop_up").attr('src').replace($("#l_image_pop_up").attr('src'), "uploads/banner/2.jpg");
+                    $("#l_image_pop_up").attr('src', src2);
+                }
+                else if(val=="listing_background_banner"){
+
+                     var src = $("#l_image").attr('src').replace($("#l_image").attr('src'), "uploads/banner/3.jpg");
+                    $("#l_image").attr('src', src);
+                      var src2 = $("#l_image_pop_up").attr('src').replace($("#l_image_pop_up").attr('src'), "uploads/banner/3.jpg");
+                    $("#l_image_pop_up").attr('src', src2);
+                }
+                else{
+                     var src = $("#l_image").attr('src').replace($("#l_image").attr('src'), "uploads/banner/logo.jpg");
+                    $("#l_image").attr('src', src);
+                      var src2 = $("#l_image_pop_up").attr('src').replace($("#l_image_pop_up").attr('src'), "uploads/banner/logo.jpg");
+                    $("#l_image_pop_up").attr('src', src2);
+
+                }
+                  
+    }
+
+
+    /*** Till BANNER */
