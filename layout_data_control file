@@ -1,0 +1,447 @@
+   /**********Add Layout Info IN Admin ****/
+
+$scope.layout={};
+
+    $scope.save_layout = function (layout) {
+
+        console.log(layout);
+       
+              var str=layout.layout_type;
+
+        $scope.u.layout_type = layout.layout_type;
+        $scope.u.layout_status = layout.layout_status;
+        $scope.u.banner_id = layout.layout_banner_assign._id;
+        $scope.u.banner_name = layout.layout_banner_assign.banner_name;
+
+
+          var sms_template;
+       String.prototype.replaceAll = function (target, replacement) {
+            return this.split(target).join(replacement);
+        };
+
+        sms_template = layout.layout_type.replaceAll("_", "-");
+
+        $scope.u.layout_name=sms_template;
+        
+         console.log($scope.u);
+                $http({
+                    method: "POST",
+                    url: "admin/add-layout-page",
+                    data: $scope.u
+                }).then(function mySucces(response) {
+
+                    //console.log(response);
+                    Notification.info({ message: 'Layout Successfully Added.', delay: 3000 });
+                    $scope.banner_detail = "";
+                    //    $scope.save_information_page_details = "";
+                }, function myError(response) {
+                    console.log('err');
+                });
+
+    }
+
+    $scope.view_layout_detail = {};
+    $scope.fetch_layout_detail = function (info_id) {
+
+        $http({
+            method: "POST",
+            url: "admin/fetch-layout-detail",
+
+        }).then(function mySucces(response) {
+
+            console.log(response.data);
+            $scope.view_layout_detail = response.data;
+            // console.log(response.data.info_pages);
+
+        }, function myError(response) {
+            console.log('err');
+        });
+
+    }
+
+    var count_all_layout = false;
+    $scope.checkAll_for_layout = function () {
+
+        if ($scope.hasAllCookChecked) {
+
+            $scope.hasAllCookChecked = true;
+            count_all_layout = true;
+        } else {
+            $scope.selection = [];
+            $scope.hasAllCookChecked = false;
+            count_all_layout = false;
+        }
+        angular.forEach($scope.view_layout_detail, function (item) {
+            item.selected = $scope.hasAllCookChecked;
+        });
+
+    };
+
+
+    $scope.layout_page_delete = function () {
+
+
+        swal({
+            title: "Are you sure?",
+            text: "You are going to delete Layout Detail.!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, delete it!",
+            cancelButtonText: "No, cancel plz!",
+            closeOnConfirm: false,
+            closeOnCancel: false
+        },
+            function (isConfirm) {
+                if (isConfirm) {
+
+
+                    if ($scope.selection.length < 1 && count_all_layout == false) {
+                        sweetAlert("Oops...", "No Checkbox Selected!", "error");
+                    }
+                    else {
+
+
+
+                        if ($scope.selection.length < 1 && $scope.hasAllCookChecked == true) {
+                            console.log('delete all pages');
+                            $scope.u = {};
+                            $scope.u.admin_id = $cookieStore.get('admin_id');
+                            $http({
+                                method: "POST",
+                                url: "admin/delete-all-layout-pages",
+                                data: $scope.u
+                            }).then(function mySucces(response) {
+
+                                // $scope.hasAllCookChecked=false;
+                                // $scope.hasAllCookChecked.selected=false;
+                                swal("Deleted!", "All Layout Details Are Deleted!", "success");
+                                $timeout(function () {
+                                    $scope.fetch_layout_detail();
+
+                                }, 400);
+
+                            }, function myError(response) {
+                                console.log('err');
+                            });
+                        }
+                        if ($scope.selection.length > 0 && count_all_layout == false || $scope.hasAllCookChecked == false) {
+
+                            console.log('delete selected layout');
+                            $scope.u = {};
+                            $scope.u.selected_layout_page = $scope.selection;
+                            $scope.u.admin_id = $cookieStore.get('admin_id');
+                            console.log($scope.u);
+                            $http({
+                                method: "POST",
+                                url: "admin/delete-selected-layout-pages",
+                                data: $scope.u
+                            }).then(function mySucces(response) {
+
+                                swal("Deleted!", "Info Page Successfully Deleted..!", "success");
+                                $scope.selection = [];
+                                $timeout(function () {
+                                    $scope.fetch_layout_detail();
+
+                                }, 400);
+
+                                // Notification.error({message: 'Info Page Successfully Deleted..', delay: 3000});
+                            }, function myError(response) {
+                                console.log('err');
+                            });
+                        }
+                        if ($scope.selection.length > 0 && count_all_layout == true && $scope.hasAllCookChecked == true) {
+                            console.log('delete all pages');
+                            $scope.u = {};
+                            $scope.u.admin_id = $cookieStore.get('admin_id');
+                            $http({
+                                method: "POST",
+                                url: "admin/delete-all-layout-pages",
+                                data: $scope.u
+                            }).then(function mySucces(response) {
+
+                                // $scope.hasAllCookChecked=false;
+                                // $scope.hasAllCookChecked.selected=false;
+                                swal("Deleted!", "All Layout Details Are Deleted!", "success");
+                                $timeout(function () {
+                                    $scope.fetch_layout_detail();
+
+                                }, 400);
+
+                            }, function myError(response) {
+                                console.log('err');
+                            });
+                        }
+
+                    }
+
+
+
+
+                } else {
+                    swal("Cancelled", "Your cancelled to delete cook :)", "error");
+                }
+            });
+
+    }
+
+
+    $scope.selectedItemChanged_Layout = function (val) {
+
+        swal({
+            title: "Are you sure?",
+            text: "You are going to Change Status of Layout!",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Yes, Change it!",
+            cancelButtonText: "No, cancel plz!",
+            closeOnConfirm: false,
+            closeOnCancel: false
+        },
+            function (isConfirm) {
+                if (isConfirm) {
+                    if ($scope.selection.length < 1 && count_all_layout == false) {
+                        sweetAlert("Oops...", "No Checkbox Selected!", "error");
+                    }
+                    else {
+
+                        if ($scope.hasAllCookChecked == undefined || $scope.hasAllCookChecked == false && $scope.selection.length > 0) {
+
+                            if (val == "Enable") {
+
+                                console.log('Selected Enabling');
+                                console.log($scope.selection);
+                                $http({
+                                    method: "POST",
+                                    url: "admin/enable-layout-by-id",
+                                    data: $scope.selection
+                                }).then(function mySucces(response) {
+
+                                    $scope.selection = [];
+                                    $timeout(function () {
+
+                                        $scope.fetch_layout_detail();
+
+                                    }, 400);
+                                    swal("Changed!", "Layout Status Successfully Changed..!", "success");
+                                }, function myError(response) {
+                                    console.log('err');
+                                });
+                            }
+
+                            else if (val == "Disable") {
+                                console.log('Selected Disabling');
+                                console.log($scope.selection);
+                                $http({
+                                    method: "POST",
+                                    url: "admin/disable-layout-by-id",
+                                    data: $scope.selection
+                                }).then(function mySucces(response) {
+                                    $scope.selection = [];
+
+                                    $timeout(function () {
+
+                                        $scope.fetch_layout_detail();
+
+                                    }, 400);
+                                    swal("Changed!", "Layout Status Successfully Changed..!", "success");
+                                }, function myError(response) {
+                                    console.log('err');
+                                });
+
+                            }
+
+                        }
+                        else
+                            if ($scope.hasAllCookChecked == undefined || $scope.hasAllCookChecked == true) {
+
+                                $scope.u = {};
+                                $scope.u.admin_id = $cookieStore.get('admin_id');
+
+                                if (val == "Enable") {
+
+
+                                    console.log($scope.selection);
+                                    $http({
+                                        method: "POST",
+                                        url: "admin/enable-all-layout",
+                                        data: $scope.u
+                                    }).then(function mySucces(response) {
+                                        $scope.hasAllCookChecked = false;
+                                        $scope.selection = [];
+                                        $timeout(function () {
+
+                                            $scope.fetch_layout_detail();
+
+                                        }, 400);
+
+
+                                        swal("Changed!", "Layout Status Successfully Changed..!", "success");
+                                    }, function myError(response) {
+                                        console.log('err');
+                                    });
+                                }
+
+                                else if (val == "Disable") {
+
+
+                                    console.log($scope.selection);
+                                    $http({
+                                        method: "POST",
+                                        url: "admin/disable-all-layout",
+                                        data: $scope.u
+                                    }).then(function mySucces(response) {
+                                        $scope.selection = [];
+                                        $scope.hasAllCookChecked = false;
+                                        $timeout(function () {
+
+                                            $scope.fetch_layout_detail();
+
+                                        }, 400);
+                                        swal("Changed!", "Layout Status Successfully Changed..!", "success");
+                                    }, function myError(response) {
+                                        console.log('err');
+                                    });
+
+                                }
+
+                            }
+
+
+
+
+
+                    }
+                }
+                else {
+                    swal("Cancelled", "Your cancelled to Change Layout Status :)", "error");
+                }
+
+
+            });
+    }
+    //         $scope.view_info_detail = {};
+    // $scope.fetch_info_pages = function (info_id) {
+
+    //     $http({
+    //         method: "POST",
+    //         url: "admin/fetch-info-pages",
+
+    //     }).then(function mySucces(response) {
+
+    //         $scope.view_info_detail = response.data.info_pages;
+    //         console.log(response.data.info_pages);
+
+    //     }, function myError(response) {
+    //         console.log('err');
+    //     });
+
+    // }
+
+    $scope.update_layout_temp = function (layout_id) {
+
+        console.log(layout_id);
+
+        $scope.tmp_layout_id = layout_id;
+        // // console.log(tmp_coupon_id) ;
+        $cookieStore.put('layout_id', $scope.tmp_layout_id);
+
+    }
+
+    $scope.update_layout_model = {};
+    $scope.update_layout_fetch_admin = function () {
+
+        $scope.u = {};
+        $scope.u.layout_id = $cookieStore.get('layout_id');
+
+        $http({
+            method: "POST",
+            url: "admin/fetch-layout-by-id",
+            data: $scope.u
+        }).then(function mySucces(response) {
+                     console.log(response.data);
+
+            $scope.update_layout_model = response.data[0];
+            
+   
+                   if($scope.update_layout_model.layout_type=="home_page_banner"){
+
+                   var src = $("#l_image").attr('src').replace($("#l_image").attr('src'), "uploads/banner/1.jpg");
+                    $("#l_image").attr('src', src);
+
+                     var src2 = $("#l_image_pop_up").attr('src').replace($("#l_image_pop_up").attr('src'), "uploads/banner/1.jpg");
+                    $("#l_image_pop_up").attr('src', src2);
+                }
+                else if($scope.update_layout_model.layout_type=="listing_banner_2"){
+
+                   var src = $("#l_image").attr('src').replace($("#l_image").attr('src'), "uploads/banner/2.jpg");
+                    $("#l_image").attr('src', src);
+                      var src2 = $("#l_image_pop_up").attr('src').replace($("#l_image_pop_up").attr('src'), "uploads/banner/2.jpg");
+                    $("#l_image_pop_up").attr('src', src2);
+                }
+                else if($scope.update_layout_model.layout_type=="listing_background_banner"){
+
+                     var src = $("#l_image").attr('src').replace($("#l_image").attr('src'), "uploads/banner/3.jpg");
+                    $("#l_image").attr('src', src);
+                      var src2 = $("#l_image_pop_up").attr('src').replace($("#l_image_pop_up").attr('src'), "uploads/banner/3.jpg");
+                    $("#l_image_pop_up").attr('src', src2);
+                }
+                else{
+                     var src = $("#l_image").attr('src').replace($("#l_image").attr('src'), "uploads/banner/logo.jpg");
+                    $("#l_image").attr('src', src);
+                      var src2 = $("#l_image_pop_up").attr('src').replace($("#l_image_pop_up").attr('src'), "uploads/banner/logo.jpg");
+                    $("#l_image_pop_up").attr('src', src2);
+
+                }
+
+           // console.log($scope.layout);
+        }, function myError(response) {
+            console.log('err');
+        });
+    }
+    $scope.update_layout_page = function () {
+
+
+        $scope.u = {};
+       
+        //  $scope.u = $scope.update_layout_model;
+        $scope.u.layout_id=$cookieStore.get('layout_id');
+        $scope.u.layout_type = $scope.update_layout_model.layout_type;
+        $scope.u.layout_status = $scope.update_layout_model.layout_status;
+        $scope.u.banner_id = $scope.update_layout_model.assined_banner_id;
+        $scope.u.banner_name = $scope.update_layout_model.assined_banner_name;
+        
+          var sms_template;
+       String.prototype.replaceAll = function (target, replacement) {
+            return this.split(target).join(replacement);
+        };
+
+        sms_template = $scope.update_layout_model.layout_type.replaceAll("_", "-");
+
+        $scope.u.layout_name=sms_template;
+
+        console.log($scope.u);
+        $http({
+            method: "POST",
+            url: "admin/update-layout-page",
+            data: $scope.u
+        }).then(function mySucces(response) {
+
+            console.log(response);
+
+            Notification.info({ message: 'Layout Details Successfully Updated.', delay: 3000 });
+            $scope.update_layout_fetch();
+            //     $scope.update_page_info_model=response.data.info_pages[0];
+            //    console.log( $scope.update_page_info_model);
+        }, function myError(response) {
+            console.log('err');
+        });
+
+    }
+
+
+
+
+
+    /*** Till Layout */
