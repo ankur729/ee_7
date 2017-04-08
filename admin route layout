@@ -1,0 +1,345 @@
+// LAYOUT OPERATIONS//
+router
+    .post('/add-layout-page', function (req, res, next) {
+
+        var b_detail=[];
+        console.log(req.body);
+
+          db.banner_infos.find({
+                _id:mongojs.ObjectId(req.body.banner_id)
+        }
+          
+            , function (err, banner) {
+                if (err || !banner) console.log("No  banner found");
+                else {
+
+                        b_detail.push(banner[0].banner_details);
+                          
+                            db.layout_infos.save(
+                                        { 
+                                                'layout_type': req.body.layout_type,
+                                                'assined_banner_id':req.body.banner_id,
+                                                'assined_banner_name':b_detail[0],
+                                                'layout_status': req.body.layout_status,
+                                                'layout_name':req.body.layout_name
+                                        }
+                                        , 
+                                     function (err, data, lastErrorObject) {
+                                    if (err) {
+                                        res.status(400);
+                                        res.send('error');
+                                        throw err;
+
+                                    }
+
+                                    console.log(data);
+                                    res.status(200).send(data);
+                                });
+
+                }
+
+            }
+
+        );
+      
+    });
+
+router
+
+    .post('/fetch-layout-detail', function (req, res, next) {
+
+        db.layout_infos.find(
+            {},
+          
+            function (err, layout) {
+
+
+                if (err) {
+                    res.status(404);
+                    res.send('layout not found');
+                } else {
+
+                    console.log(layout);
+                    res.status(200).send(layout);
+                }
+            });
+    });
+
+router
+
+    .post('/delete-selected-layout-pages', function (req, res, next) {
+
+        console.log(req.body);
+
+        for (var i = 0; i < req.body.selected_layout_page.length; i++) {
+
+
+         db.layout_infos.remove({
+               
+                    '_id': mongojs.ObjectId(req.body.selected_layout_page[i])
+              
+            }, function (err, data, lastErrorObject) {
+                if (err) {
+                    res.status(400);
+                    res.send('error');
+                    throw err;
+
+                }
+           
+                console.log('deleted');
+
+
+            });
+
+
+
+
+        }
+        res.send('deleted');
+    });
+
+
+router
+
+    .post('/delete-all-layout-pages', function (req, res, next) {
+
+
+        console.log(req.body);
+        db.layout_infos.remove();
+
+    });
+
+router
+
+    .post('/enable-layout-by-id', function (req, res, next) {
+
+        console.log(req.body);
+
+        for (var i = 0; i < req.body.length; i++) {
+
+            db.layout_infos.update({
+                "_id": mongojs.ObjectId(req.body[i])
+            },
+
+                {
+                    "$set": {
+                        "layout_status": 'Enable'
+
+                    }
+
+
+                }
+
+                ,
+                function (err, layout) {
+                    if (err || !layout) console.log("No  layout found");
+                    else {
+                        console.log(layout);
+
+                    }
+
+                }
+
+
+
+            );
+
+
+        }
+        res.status(200).send({
+            'status': 'updated'
+        });
+
+    });
+
+router
+
+    .post('/disable-layout-by-id', function (req, res, next) {
+
+        console.log(req.body);
+     for (var i = 0; i < req.body.length; i++) {
+
+            db.layout_infos.update({
+                "_id": mongojs.ObjectId(req.body[i])
+            },
+
+                {
+                    "$set": {
+                        "layout_status": 'Disable'
+
+                    }
+
+
+                }
+
+                ,
+                function (err, layout) {
+                    if (err || !layout) console.log("No  layout found");
+                    else {
+                        console.log(layout);
+
+                    }
+
+                }
+
+
+
+            );
+
+
+        }
+        res.status(200).send({
+            'status': 'updated'
+        });
+
+    });
+
+router
+
+    .post('/enable-all-layout', function (req, res, next) {
+
+        console.log('enabling all');
+        console.log(req.body);
+
+                db.layout_infos.update({
+                         
+                        },
+
+                            {
+                                "$set": {
+                                    "layout_status": 'Enable'
+
+                                }
+
+                            },
+                            {multi: true}
+                            ,
+                            function (err, layout) {
+                                if (err || !layout) console.log("No  layout found");
+                                else {
+                                    console.log(layout);
+
+                                }
+                                res.send('success');
+                            }
+
+
+
+                        );
+
+
+    });
+
+router
+
+    .post('/disable-all-layout', function (req, res, next) {
+
+        console.log(req.body);
+                    db.layout_infos.update({
+                         
+                        },
+
+                            {
+                                "$set": {
+                                    "layout_status": 'Disable'
+
+                                }
+
+                            },
+                            {multi: true}
+                            ,
+                            function (err, layout) {
+                                if (err || !layout) console.log("No  layout found");
+                                else {
+                                    console.log(layout);
+
+                                }
+                                res.send('success');
+                            }
+
+
+
+                        );
+
+
+
+    });
+
+router
+
+    .post('/fetch-layout-by-id', function (req, res, next) {
+
+
+        db.layout_infos.find({
+            "_id": mongojs.ObjectId(req.body.layout_id)
+        }
+            , function (err, layout) {
+                if (err || !layout) console.log("No  layout found");
+                else {
+                    console.log(layout);
+                    res.status(200).send(layout);
+                }
+
+            }
+
+        );
+
+    });
+
+router
+
+    .post('/update-layout-page', function (req, res, next) {
+
+        console.log(req.body.banner_name._id);
+        var b_detail=[];
+
+            db.banner_infos.find({
+                '_id':mongojs.ObjectId(req.body.banner_name._id)
+        }
+          
+            , function (err, banner) {
+                if (err || !banner) console.log("No  banner found");
+                else {  
+
+                    console.log(banner);
+
+                        b_detail.push(banner[0].banner_details);
+                         
+                          
+                                db.layout_infos.update({
+                                        "_id": mongojs.ObjectId(req.body.layout_id)
+                                    },
+
+                                        {
+                                            "$set": {
+                                                
+                                                'layout_type': req.body.layout_type,
+                                                'assined_banner_id':req.body.banner_id,
+                                                'assined_banner_name':b_detail[0],
+                                                'layout_status': req.body.layout_status,
+                                                'layout_name':req.body.layout_name
+                                    
+                                            }
+
+                                        },
+                                     function (err, data, lastErrorObject) {
+                                    if (err) {
+                                        res.status(400);
+                                        res.send('error');
+                                        throw err;
+
+                                    }
+
+                                    console.log(data);
+                                    res.status(200).send(data);
+                                });
+
+                }
+
+            }
+
+        );
+      
+    });
+
+//FOR TEMPLATE OPERATIONS
