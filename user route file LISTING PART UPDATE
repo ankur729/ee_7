@@ -1,0 +1,148 @@
+router
+    .get('/get-listing-foods', function (req, res, next) {
+
+        console.log('this is for ANK Listing');
+     
+        var listing = [];
+        var count = 0;
+        var filter_cuisine = [];
+        var filter_cuisine_obj = [];
+
+        var filter_occ = [];
+        var filter_occ_obj = [];
+
+        var total_cuisine = 0;
+        var total_occ = 0;
+
+        var veg_type = [];
+        var meal_type=[];
+
+        var price_list = [];
+        var price_data = {};
+
+        var time_list = [];
+        var time_data = {};
+
+        var filter = {};
+
+        db.cook_infos.find({isApproved:'Approved'}, {
+            'food_details': 1,
+            _id: 0,
+            cook_latitude:1,
+            cook_longitude:1
+        }, function (err, data, lastErrorObject) {
+            if (err) {
+                res.status(400);
+                res.send('error');
+                console.log(err);
+
+                throw err;
+
+            }
+
+            //  console.log(data);
+          //    res.send(data);
+
+              var i,j;
+
+// COLLECT ALL COOK LATITUDE AND LONGITUDE
+
+        var lat_long_coll=[];
+         var lat_long_obj={};
+            //   for(i=0;i<data.length;i++){
+
+            //          lat_long_obj={};
+            //          lat_long_obj.cook_latitude=data[i].cook_latitude;
+            //          lat_long_obj.cook_longitude=data[i].cook_longitude;
+
+            //          lat_long_coll.push(lat_long_obj);    
+                     
+
+            //   }
+
+// COLLECT ALL COOK LATITUDE AND LONGITUDE
+
+// var lt = 28.6416462;   // this is User lat
+// var lt1 = 28.6367043;  // this is Cook lat
+
+// var ln = 77.293118;    // this is User long
+// var ln1 = 77.2847481;  // this is Cook long
+
+// var dLat = (lt - lt1) * Math.PI / 180;
+// var dLon = (ln - ln1) * Math.PI / 180;
+// var a = 0.5 - Math.cos(dLat) / 2 + Math.cos(lt1 * Math.PI / 180) * Math.cos(lt * Math.PI / 180) * (1 - Math.cos(dLon)) / 2;
+// d = Math.round(6371000 * 2 * Math.asin(Math.sqrt(a)));
+
+
+        //      res.send(lat_long_coll);
+
+
+var lt,lt1,ln,ln1,dLat,dLon,a;
+ var cook_final_list_coll=[];
+
+                                            // FINDING ALL COOKS WITHIN USER range
+
+        for(i=0;i<data.length;i++){
+
+                if(data[i].food_details.length>0){
+
+                 
+
+                        lt = 28.6416462;   // this is User lat
+                        lt1 = data[i].cook_latitude;  // this is Cook lat
+
+                        ln = 77.293118;    // this is User long
+                        ln1 = data[i].cook_longitude;  // this is Cook long
+
+                        dLat = (lt - lt1) * Math.PI / 180;
+                        dLon = (ln - ln1) * Math.PI / 180;
+                        a = 0.5 - Math.cos(dLat) / 2 + Math.cos(lt1 * Math.PI / 180) * Math.cos(lt * Math.PI / 180) * (1 - Math.cos(dLon)) / 2;
+                        d = Math.round(6371000 * 2 * Math.asin(Math.sqrt(a)));
+
+                    
+                    
+                        if(d<=2000){
+
+                                cook_final_list_coll.push(data[i]);
+
+                        }
+
+
+                }
+
+         
+
+        }
+
+     
+                                    // PREPARING LIST OF ALL FOODS DETAIL WHO HAS APPROVED BY ADMIN ONLY
+
+            for (var i = 0; i < cook_final_list_coll.length; i++) {
+
+                for (var j = 0; j < cook_final_list_coll[i].food_details.length; j++) {
+
+                        if( cook_final_list_coll[i].food_details[j].food_isApproved=='Approved'){
+
+                                  listing[count] = cook_final_list_coll[i].food_details[j];
+
+
+                                     count++;
+                        }
+
+                  
+
+                }
+
+
+                // filter.listing=listing;
+                //   console.log(listing);
+
+            }
+
+       // console.log(listing.length);
+     //        res.send(listing);
+        
+
+
+            // FINAL WE GET LISTING FOODS
+
